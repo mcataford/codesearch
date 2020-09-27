@@ -1,0 +1,15 @@
+VENV=codesearch.venv
+
+#################################################################
+# Bootstrapping sets up the Python 3.8 venv that allows the use #
+# of the invoke commands.                                       #
+#################################################################
+
+{
+    pyenv virtualenv-delete -f $VENV
+    pyenv virtualenv $VENV &&
+    pyenv activate $VENV &&
+    python -m pip install -U pip &&
+    pip install -r requirements.txt &&
+    echo "✨ Good to go! ✨"
+}
