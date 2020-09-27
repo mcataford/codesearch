@@ -1,7 +1,7 @@
 import socket
 import json
 
-import settings
+from settings import settings
 
 from colors import highlight
 
@@ -14,12 +14,12 @@ def search(query):
         results = json.loads(s.recv(length).decode())
 
         for result in results:
-            with open(result[0], "r") as infile:
-                highlighted_text = infile.read()[result[1] : result[2]].replace(
-                    query, highlight(query)
-                )
-                line_number = result[3]
-                print(highlight(result[0]))
+            with open(result["key"], "r") as infile:
+                highlighted_text = infile.read()[
+                    result["offset_start"] : result["offset_end"]
+                ].replace(query, highlight(query))
+                line_number = result["line_start"]
+                print(highlight(result["key"]))
                 for l in highlighted_text.split("\n"):
                     print(f"{highlight(line_number)} {l}")
                     line_number += 1

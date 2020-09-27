@@ -8,7 +8,7 @@ from watcher import WatchHandler
 from indexer import Indexer
 from constants import QUERY_STRING_LENGTH
 
-import settings
+from settings import settings
 
 from logger import get_logger
 
@@ -68,13 +68,7 @@ class Server:
     def run(self):
         collected = {}
 
-        for watched_path in self.watched:
-            logger.info(f"Collecting files from ${watched_path}")
-            collected.update(self.indexer.discover(watched_path))
-
-        for c in collected:
-            logger.info(f"Indexing ${c}")
-            self.indexer.index(c, collected[c])
+        self.indexer.index(self.watched)
 
         try:
             self._start_watch()
