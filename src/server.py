@@ -26,15 +26,15 @@ class Server:
         socket.bind((settings.SOCKET_HOST, settings.SOCKET_PORT))
         socket.listen()
 
-        logger.info(f"Listening on ${settings.SOCKET_HOST}:${settings.SOCKET_PORT}")
+        logger.info(f"Listening on ${settings.SOCKET_HOST}:{settings.SOCKET_PORT}")
 
         while True:
             conn, _ = socket.accept()
-            query_string = conn.recv(QUERY_STRING_LENGTH)
+            query_string = conn.recv(QUERY_STRING_LENGTH).decode()
             logger.info(f"Query: {query_string}")
             if query_string:
                 try:
-                    query_results = self.indexer.query(query_string.decode())
+                    query_results = self.indexer.query(query_string)
                     response = json.dumps(query_results).encode()
                     response_length = str(len(response))
                     conn.sendall(response_length.encode())

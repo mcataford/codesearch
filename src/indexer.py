@@ -97,7 +97,6 @@ class Indexer(IndexerBase):
             return []
 
         if current.is_dir():
-            logger.info(list(current.iterdir()))
             for child_path in current.iterdir():
                 collected.extend(self._discover(str(child_path)))
 
