@@ -1,5 +1,4 @@
 import json
-
 import socket
 import pyinotify
 import attr
@@ -26,7 +25,7 @@ class Server:
         socket.bind((settings.SOCKET_HOST, settings.SOCKET_PORT))
         socket.listen()
 
-        logger.info(f"Listening on ${settings.SOCKET_HOST}:{settings.SOCKET_PORT}")
+        logger.info(f"Listening on {settings.SOCKET_HOST}:{settings.SOCKET_PORT}")
 
         while True:
             conn, _ = socket.accept()
@@ -57,7 +56,7 @@ class Server:
         watch_manager = pyinotify.WatchManager()
 
         for path in self.watched:
-            logger.info(f"Watching ${path}")
+            logger.info(f"Watching {path}")
             watch_manager.add_watch(path, pyinotify.ALL_EVENTS, rec=True)
 
         event_handler = WatchHandler(indexer=self.indexer)
