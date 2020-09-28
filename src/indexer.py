@@ -52,20 +52,23 @@ class Indexer(IndexerBase):
         for path in paths:
             discovered.extend(self._discover(path))
 
-        logger.info(f"[Discovery] Discovered {len(discovered)} files.")
+        logger.info(f"Discovered {len(discovered)} files.", prefix="Discovery")
 
         self._preload(discovered)
         self._populate_indices(self.corpus.collect_unprocessed_documents())
         end_time = perf_counter()
 
         logger.info(
-            f"[Index status] {self.corpus.document_count} total files indexed in {end_time - start_time} seconds."
+            f"{self.corpus.document_count} total files indexed in {end_time - start_time} seconds.",
+            prefix="Index status",
         )
 
     def query(self, query: str):
         start_time = perf_counter()
         leads = self._trigram_index.query(query)
-        logger.info(f"Narrowed down to {len(leads)} files via trigram search")
+        logger.info(
+            f"Narrowed down to {len(leads)} files via trigram search", prefix="Query"
+        )
         confirmed = []
         uniques = 0
         for lead in leads:
@@ -96,7 +99,8 @@ class Indexer(IndexerBase):
                 uniques += 1
         end_time = perf_counter()
         logger.info(
-            f"{len(confirmed)} hits in {uniques} files ({end_time - start_time} seconds elapsed)."
+            f"{len(confirmed)} hits in {uniques} files ({end_time - start_time} seconds elapsed).",
+            prefix="Query",
         )
         return [r.to_dict() for r in confirmed]
 
@@ -106,7 +110,7 @@ class Indexer(IndexerBase):
 
         # Avoid any excluded paths
         if any([current.match(x) for x in settings.EXCLUDES]):
-            logger.info(f"[Discovery] {path_root} excluded.")
+            logger.info(f"{path_root} excluded.", prefix="Discovery")
             return []
 
         if current.is_dir():
@@ -118,7 +122,7 @@ class Indexer(IndexerBase):
         if current.suffix not in settings.FILE_TYPES:
             return []
 
-        logger.info(f"Collected {path_root}")
+        logger.info(f"Collected {path_root}", prefix="Discovery")
         return [path_root]
 
     def _preload(self, discovered: List[str]):
@@ -127,10 +131,11 @@ class Indexer(IndexerBase):
                 with open(discovered_file, "r") as infile:
                     content = infile.read()
                     self.corpus.add_document(key=discovered_file, content=content)
-                logger.info(f"[Preloading] Loaded {discovered_file} in memory")
+                logger.info(f"Loaded {discovered_file} in memory", prefix="Preloading")
             except Exception as e:
-                logger.exception(e)
-                logger.error(f"Could not read {discovered_file}, skipping.")
+                logger.warning(
+                    f"Could not read {discovered_file}, skipping.", prefix="Preloading"
+                )
 
     def _populate_indices(self, uids):
         processes = settings.INDEXING_PROCESSES
@@ -154,7 +159,7 @@ class Indexer(IndexerBase):
             content = document.content
             trigrams[uid] = TrigramIndex.trigramize(content)
             self._line_index.index(path, content)
-            logger.info(f"[Indexing] Processed {path}")
+            logger.info(f"Processed {path}", prefix="Indexing")
 
         return (trigrams, self._line_index._lines)
 

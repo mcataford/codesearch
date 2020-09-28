@@ -25,12 +25,15 @@ class Server:
         socket.bind((settings.SOCKET_HOST, settings.SOCKET_PORT))
         socket.listen()
 
-        logger.info(f"Listening on {settings.SOCKET_HOST}:{settings.SOCKET_PORT}")
+        logger.info(
+            f"Listening on {settings.SOCKET_HOST}:{settings.SOCKET_PORT}",
+            prefix="Server",
+        )
 
         while True:
             conn, _ = socket.accept()
             query_string = conn.recv(QUERY_STRING_LENGTH).decode()
-            logger.info(f"Query: {query_string}")
+            logger.info(f"Query string: {query_string}", prefix="Query")
             if query_string:
                 try:
                     query_results = self.indexer.query(query_string)
@@ -41,7 +44,7 @@ class Server:
                 except KeyboardInterrupt:
                     raise e
                 except Exception as e:
-                    logger.exception(e)
+                    pass
 
     def _start_socket(self):
         try:
@@ -49,14 +52,13 @@ class Server:
                 self._socket = socket_obj
                 self._handle_socket(socket=socket_obj)
         except Exception as e:
-            logger.exception(e)
             raise e
 
     def _start_watch(self):
         watch_manager = pyinotify.WatchManager()
 
         for path in self.watched:
-            logger.info(f"Watching {path}")
+            logger.info(f"Watching {path}", prefix="Server")
             watch_manager.add_watch(path, pyinotify.ALL_EVENTS, rec=True)
 
         event_handler = WatchHandler(indexer=self.indexer)
