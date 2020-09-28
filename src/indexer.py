@@ -4,6 +4,7 @@ from typing import Dict, List
 import re
 from time import perf_counter
 from multiprocessing import Pool
+import mmap
 
 import attr
 
@@ -54,7 +55,7 @@ class Indexer(IndexerBase):
 
         logger.info(f"Discovered {len(discovered)} files.", prefix="Discovery")
 
-        self._preload(discovered)
+        self._build_corpus(discovered)
         self._populate_indices(self.corpus.collect_unprocessed_documents())
         end_time = perf_counter()
 
@@ -135,17 +136,16 @@ class Indexer(IndexerBase):
         logger.info(f"Collected {path_root}", prefix="Discovery")
         return [path_root]
 
-    def _preload(self, discovered: List[str]):
+    def _build_corpus(self, discovered: List[str]):
+        total = len(discovered)
+        current = 0
         for discovered_file in discovered:
-            try:
-                with open(discovered_file, "r") as infile:
-                    content = infile.read()
-                    self.corpus.add_document(key=discovered_file, content="")
-                logger.info(f"Loaded {discovered_file} in memory", prefix="Preloading")
-            except Exception as e:
-                logger.warning(
-                    f"Could not read {discovered_file}, skipping.", prefix="Preloading"
-                )
+            self.corpus.add_document(key=discovered_file, content="")
+            current += 1
+            logger.info(
+                f"({current}/{total}) Registered {discovered_file} in corpus",
+                prefix="Corpus building",
+            )
 
     def _populate_indices(self, uids):
         processes = settings.INDEXING_PROCESSES
@@ -163,21 +163,31 @@ class Indexer(IndexerBase):
     # TODO: Tidy up, rethink w.r.t. multiprocessing.
     def _bulk_process(self, uids: List[str]):
         trigrams = {}
+        total = len(uids)
+        current = 0
         for uid in uids:
             document = self.corpus.get_document(uid=uid)
             path = document.key
-            # content = document.content
             try:
-                with open(path, "r") as infile:
-                    import mmap
-
-                    m = mmap.mmap(infile.fileno(), 0, prot=mmap.PROT_READ)
-                    content = m.read().decode()
+                with open(path, "r") as document_file:
+                    mapped_file = mmap.mmap(
+                        document_file.fileno(), 0, prot=mmap.PROT_READ
+                    )
+                    content = mapped_file.read().decode()
                     trigrams[uid] = TrigramIndex.trigramize(content)
                     self._line_index.index(path, content)
-                    logger.info(f"Processed {path}", prefix="Indexing")
-            except:
-                logger.warning(path, prefix="Indexing")
+                    current += 1
+                    logger.info(
+                        f"({current}/{total}) Processed {path}", prefix="Indexing"
+                    )
+            except Exception as e:
+                logger.info(e)
+                current += 1
+                logger.warning(
+                    f"({current}/{total}) Could not read {path}, skipping.",
+                    prefix="Indexing",
+                )
+
         return (trigrams, self._line_index._lines)
 
     def _find_closest_line(self, path, index):
@@ -186,7 +196,7 @@ class Indexer(IndexerBase):
         for l in content:
             if content[l][0] <= index <= content[l][1]:
                 return l
-
+        # TODO: This should not be reachable.
         return 0
 
     def _find_line_range(self, key, start, end, padding=5):
