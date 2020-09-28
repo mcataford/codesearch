@@ -64,26 +64,26 @@ class Indexer(IndexerBase):
 
     def query(self, query: str):
         start_time = perf_counter()
-        trigram_results = self._trigram_index.query(query)
-
-        logger.info(f"Narrowed down to {len(trigram_results)} files via trigram search")
-
+        leads = self._trigram_index.query(query)
+        logger.info(f"Narrowed down to {len(leads)} files via trigram search")
         confirmed = []
         uniques = 0
-        for lead in trigram_results:
-            lead_content = self.corpus.get_document(key=lead[1]).content
+        for lead in leads:
+            uid, score = lead
+            lead_content = self.corpus.get_document(uid=uid).content
+            lead_path = self.corpus.get_document(uid=uid).key
             results = re.finditer(query, lead_content)
             hits_in_lead = []
             for hit in results:
                 start_line, end_line = self._find_line_range(
-                    lead[1], hit.start(), hit.end()
+                    lead_path, hit.start(), hit.end()
                 )
-                start_offset = self._line_index.query(lead[1])[start_line][0]
-                end_offset = self._line_index.query(lead[1])[end_line][1]
+                start_offset = self._line_index.query(lead_path)[start_line][0]
+                end_offset = self._line_index.query(lead_path)[end_line][1]
 
                 hits_in_lead.append(
                     SearchResult(
-                        key=lead[1],
+                        key=lead_path,
                         offset_start=start_offset,
                         offset_end=end_offset,
                         line_start=start_line,
@@ -136,22 +136,27 @@ class Indexer(IndexerBase):
         processes = settings.INDEXING_PROCESSES
         pool = Pool(processes=processes)
         chunks = chunkify_content(uids, processes)
-        results = pool.map(self._bulk_process, chunks)
-        # TODO: Refactor indices to populate cleanly.
-        for result in results:
-            self._trigram_index._trigrams.update(result[0])
+        processed_chunks = pool.map(self._bulk_process, chunks)
+
+        for result in processed_chunks:
+            for uid in result[0]:
+                self._trigram_index.index(
+                    uid.replace("document:", ""), None, None, result[0][uid]
+                )
             self._line_index._lines.update(result[1])
 
+    # TODO: Tidy up, rethink w.r.t. multiprocessing.
     def _bulk_process(self, uids: List[str]):
+        trigrams = {}
         for uid in uids:
             document = self.corpus.get_document(uid=uid)
             path = document.key
             content = document.content
-            self._trigram_index.index(path, content)
+            trigrams[uid] = TrigramIndex.trigramize(content)
             self._line_index.index(path, content)
             logger.info(f"[Indexing] Processed {path}")
 
-        return (self._trigram_index._trigrams, self._line_index._lines)
+        return (trigrams, self._line_index._lines)
 
     def _find_closest_line(self, path, index):
         content = self._line_index.query(path)
