@@ -14,6 +14,7 @@ default_settings = {
     "FILE_TYPES": [],
     "SIGNIFICANCE_THRESHOLD": 0,
     "WATCHED": [],
+    "INDEXING_PROCESSES": 4,
 }
 
 

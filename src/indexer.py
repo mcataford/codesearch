@@ -3,12 +3,13 @@ from pathlib import Path
 from typing import Dict, List
 import re
 from time import perf_counter
-from multiprocessing import Pool, Process, Manager
+from multiprocessing import Pool
 
 import attr
 
 from settings import settings
 
+from process_utils import chunkify_content
 from document_models import Corpus
 from trigram_index import TrigramIndex
 from line_index import LineIndex
@@ -54,7 +55,7 @@ class Indexer(IndexerBase):
         logger.info(f"[Discovery] Discovered {len(discovered)} files.")
 
         self._preload(discovered)
-        self._async_process(self.corpus.collect_unprocessed_documents())
+        self._populate_indices(self.corpus.collect_unprocessed_documents())
         end_time = perf_counter()
 
         logger.info(
@@ -131,43 +132,26 @@ class Indexer(IndexerBase):
                 logger.exception(e)
                 logger.error(f"Could not read {discovered_file}, skipping.")
 
-    # TODO: Tidy up.
-    def _async_process(self, uids):
-        processes = 4  # Settings?
-        chunk_size = int(len(uids) / processes)  # Extract into process utils
-        chunk_boundary = 0
+    def _populate_indices(self, uids):
+        processes = settings.INDEXING_PROCESSES
         pool = Pool(processes=processes)
-
-        chunks = []
-
-        for i in range(processes):
-            if i == processes - 1:
-                chunks.append(uids[chunk_boundary:])
-            else:
-                chunks.append(uids[chunk_boundary : chunk_boundary + chunk_size])
-
-            chunk_boundary += chunk_size
-
-        r = pool.map(self._bulk_process, chunks)  # is pool the best way?
-        for rs in r:
-            self._trigram_index._trigrams.update(rs[0])
-            self._line_index._lines.update(rs[1])
+        chunks = chunkify_content(uids, processes)
+        results = pool.map(self._bulk_process, chunks)
+        # TODO: Refactor indices to populate cleanly.
+        for result in results:
+            self._trigram_index._trigrams.update(result[0])
+            self._line_index._lines.update(result[1])
 
     def _bulk_process(self, uids: List[str]):
         for uid in uids:
-            self._process(uid)
+            document = self.corpus.get_document(uid=uid)
+            path = document.key
+            content = document.content
+            self._trigram_index.index(path, content)
+            self._line_index.index(path, content)
+            logger.info(f"[Indexing] Processed {path}")
 
         return (self._trigram_index._trigrams, self._line_index._lines)
-
-    def _process(self, uid: str):
-        document = self.corpus.get_document(uid=uid)
-        path = document.key
-        content = document.content
-
-        self._trigram_index.index(path, content)
-
-        self._line_index.index(path, content)
-        logger.info(f"[Indexing] Processed {path}")
 
     def _find_closest_line(self, path, index):
         content = self._line_index.query(path)
