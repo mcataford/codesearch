@@ -1,8 +1,7 @@
 import socket
 import json
-
 from settings import settings
-
+from pathlib import Path
 from colors import highlight
 
 
@@ -10,8 +9,13 @@ def search(query):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((settings.SOCKET_HOST, settings.SOCKET_PORT))
         s.sendall(query.encode())
-        length = int(s.recv(4).decode())
-        results = json.loads(s.recv(length).decode())
+        length = int(s.recv(8).decode())
+        results = None
+
+        with open(Path(settings.BUFFER_PATH).expanduser(), "rb") as infile:
+            results = infile.read().decode()
+
+        results = json.loads(results)
 
         for result in results:
             with open(result["key"], "r") as infile:

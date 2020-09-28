@@ -73,8 +73,18 @@ class Indexer(IndexerBase):
         uniques = 0
         for lead in leads:
             uid, score = lead
-            lead_content = self.corpus.get_document(uid=uid).content
             lead_path = self.corpus.get_document(uid=uid).key
+            lead_content = ""
+            try:
+                with open(lead_path, "r") as infile:
+                    import mmap
+
+                    m = mmap.mmap(infile.fileno(), 0, prot=mmap.PROT_READ)
+                    lead_content = m.read().decode()
+            except Exception as e:
+                logger.warning(e)
+                logger.warning(f"No content in {lead_path}", prefix="Query")
+
             results = re.finditer(query, lead_content)
             hits_in_lead = []
             for hit in results:
@@ -130,7 +140,7 @@ class Indexer(IndexerBase):
             try:
                 with open(discovered_file, "r") as infile:
                     content = infile.read()
-                    self.corpus.add_document(key=discovered_file, content=content)
+                    self.corpus.add_document(key=discovered_file, content="")
                 logger.info(f"Loaded {discovered_file} in memory", prefix="Preloading")
             except Exception as e:
                 logger.warning(
@@ -156,11 +166,18 @@ class Indexer(IndexerBase):
         for uid in uids:
             document = self.corpus.get_document(uid=uid)
             path = document.key
-            content = document.content
-            trigrams[uid] = TrigramIndex.trigramize(content)
-            self._line_index.index(path, content)
-            logger.info(f"Processed {path}", prefix="Indexing")
+            # content = document.content
+            try:
+                with open(path, "r") as infile:
+                    import mmap
 
+                    m = mmap.mmap(infile.fileno(), 0, prot=mmap.PROT_READ)
+                    content = m.read().decode()
+                    trigrams[uid] = TrigramIndex.trigramize(content)
+                    self._line_index.index(path, content)
+                    logger.info(f"Processed {path}", prefix="Indexing")
+            except:
+                logger.warning(path, prefix="Indexing")
         return (trigrams, self._line_index._lines)
 
     def _find_closest_line(self, path, index):

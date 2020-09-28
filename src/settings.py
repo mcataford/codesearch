@@ -15,6 +15,7 @@ default_settings = {
     "SIGNIFICANCE_THRESHOLD": 0,
     "WATCHED": [],
     "INDEXING_PROCESSES": 4,
+    "BUFFER_PATH": "~/.codesearchbuffer",
 }
 
 

@@ -2,11 +2,10 @@ import json
 import socket
 import pyinotify
 import attr
-
 from watcher import WatchHandler
 from indexer import Indexer
 from constants import QUERY_STRING_LENGTH
-
+from pathlib import Path
 from settings import settings
 
 from logger import get_logger
@@ -38,12 +37,14 @@ class Server:
                 try:
                     query_results = self.indexer.query(query_string)
                     response = json.dumps(query_results).encode()
-                    response_length = str(len(response))
+                    response_length = str(len(response.decode()))
+                    with open(Path(settings.BUFFER_PATH).expanduser(), "wb") as outfile:
+                        outfile.write(response)
                     conn.sendall(response_length.encode())
-                    conn.sendall(response)
                 except KeyboardInterrupt:
                     raise e
                 except Exception as e:
+                    logger.warning(e)
                     pass
 
     def _start_socket(self):
@@ -52,6 +53,7 @@ class Server:
                 self._socket = socket_obj
                 self._handle_socket(socket=socket_obj)
         except Exception as e:
+            logger.warning(e)
             raise e
 
     def _start_watch(self):

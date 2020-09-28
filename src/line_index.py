@@ -1,6 +1,9 @@
 from base import IndexBase
-
 import attr
+
+from logger import get_logger
+
+logger = get_logger(__name__)
 
 
 @attr.s
