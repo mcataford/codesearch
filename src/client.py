@@ -12,9 +12,30 @@ def display_handler(stdscr, buffer):
     stdscr.refresh()
     curses.start_color()
     y, x = stdscr.getmaxyx()
+    curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
     pad = curses.newpad(y, x)
     while True:
-        pad.addstr(0, 0, "".join(buffer[current_y : current_y + y - 1]))
+        row = 0
+        y_offset = 0
+        pad.clear()
+        while row < current_y + y - 1:
+            l = buffer[current_y + y_offset]
+            if l["type"] == "path":
+                pad.addstr(row, 0, l["value"], curses.color_pair(1))
+                row += 1
+                y_offset += 1
+            elif l["type"] == "sep":
+                row += 1
+                y_offset += 1
+            else:
+                pad.addstr(row, 0, str(l["lineno"]), curses.color_pair(1))
+                pad.addstr(row, 5, l["value"])
+                row += 1
+                y_offset += 1
+
+            if y_offset == y or current_y == y - 1:
+                break
+
         pad.refresh(0, 0, 0, 0, y, x)
         key = stdscr.getch()
 
@@ -49,13 +70,11 @@ def search(query):
                     result["offset_start"] : result["offset_end"]
                 ]
                 line_number = result["line_start"]
-                output.append(result["key"] + "\n")
+                output.append({"value": result["key"], "type": "path"})
                 for l in highlighted_text.split("\n"):
-                    output.append(f"{line_number} {l}\n")
+                    output.append({"value": l, "type": "code", "lineno": line_number})
                     line_number += 1
-
-                output.append("\n")
-                output.append("\n")
+                output.append({"type": "sep"})
 
         s.close()
 
