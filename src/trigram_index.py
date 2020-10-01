@@ -1,9 +1,9 @@
 from typing import List, Optional
 
 import attr
-from settings import settings
-from base import IndexBase
-from prefix_tree import PrefixTree
+from .settings import settings
+from .base import IndexBase
+from .prefix_tree import PrefixTree
 
 
 @attr.s

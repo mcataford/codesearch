@@ -2,7 +2,7 @@ import logging
 import sys
 import attr
 
-from colors import highlight
+from .colors import highlight
 
 
 @attr.s

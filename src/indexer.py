@@ -1,4 +1,4 @@
-from base import IndexerBase
+from .base import IndexerBase
 from pathlib import Path
 from typing import Dict, List
 import re
@@ -8,13 +8,13 @@ import mmap
 
 import attr
 
-from settings import settings
+from .settings import settings
 
-from process_utils import chunkify_content
-from document_models import Corpus
-from trigram_index import TrigramIndex
-from line_index import LineIndex
-from logger import get_logger
+from .process_utils import chunkify_content
+from .document_models import Corpus
+from .trigram_index import TrigramIndex
+from .line_index import LineIndex
+from .logger import get_logger
 
 logger = get_logger(__name__)
 

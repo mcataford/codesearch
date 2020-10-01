@@ -1,7 +1,7 @@
-from base import IndexBase
+from .base import IndexBase
 import attr
 
-from logger import get_logger
+from .logger import get_logger
 
 logger = get_logger(__name__)
 

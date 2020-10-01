@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 import attr
 
-from constants import SETTINGS_KEYS
+from .constants import SETTINGS_KEYS
 
 SETTINGS_PATH = "~/.codesearchrc"
 
