@@ -1,10 +1,12 @@
 import socket
 import json
-from settings import settings
 from pathlib import Path
-from colors import highlight
 
 import curses
+
+
+from .settings import settings
+from .colors import highlight
 
 
 def display_handler(stdscr, buffer):

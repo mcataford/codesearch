@@ -2,13 +2,13 @@ import json
 import socket
 import pyinotify
 import attr
-from watcher import WatchHandler
-from indexer import Indexer
-from constants import QUERY_STRING_LENGTH
+from codesearch.watcher import WatchHandler
+from codesearch.indexer import Indexer
+from codesearch.constants import QUERY_STRING_LENGTH
 from pathlib import Path
-from settings import settings
+from codesearch.settings import settings
 
-from logger import get_logger
+from codesearch.logger import get_logger
 
 logger = get_logger(__name__)
 

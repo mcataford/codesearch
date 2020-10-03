@@ -43,6 +43,8 @@ class Indexer(IndexerBase):
     _trigram_index = attr.ib(default=attr.Factory(TrigramIndex))
     _line_index = attr.ib(default=attr.Factory(LineIndex))
 
+    _exclusions = attr.ib(default=attr.Factory(list))
+    _file_types = attr.ib(default=attr.Factory(list))
     # Document corpus
     corpus = attr.ib(default=attr.Factory(Corpus))
     domain = attr.ib(default=attr.Factory(list))
@@ -120,7 +122,7 @@ class Indexer(IndexerBase):
         current = Path(path_root)
 
         # Avoid any excluded paths
-        if any([current.match(x) for x in settings.EXCLUDES]):
+        if any([current.match(x) for x in self._exclusions]):
             logger.info(f"{path_root} excluded.", prefix="Discovery")
             return []
 
@@ -130,7 +132,7 @@ class Indexer(IndexerBase):
 
             return collected
 
-        if current.suffix not in settings.FILE_TYPES:
+        if current.suffix not in self._file_types:
             return []
 
         logger.info(f"Collected {path_root}", prefix="Discovery")

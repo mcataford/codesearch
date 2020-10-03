@@ -2,6 +2,7 @@ import json
 
 import attr
 
+
 @attr.s
 class PrefixTree:
     root = attr.ib()
@@ -49,7 +50,6 @@ class PrefixTree:
 
     def to_json(self):
         return json.dumps(self.to_dict())
-        
 
 
 @attr.s
@@ -59,4 +59,8 @@ class PrefixTreeNode:
     children = attr.ib(default=attr.Factory(dict))
 
     def to_dict(self):
-        return {"value": self.value, "mappings": self.mappings, "children": [child.to_dict() for child in self.children.values()]}
+        return {
+            "value": self.value,
+            "mappings": self.mappings,
+            "children": [child.to_dict() for child in self.children.values()],
+        }
