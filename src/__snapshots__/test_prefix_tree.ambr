@@ -1,0 +1,184 @@
+# name: test_base_tree_has_a_root_node
+  <class 'dict'> {
+    'children': <class 'list'> [
+    ],
+    'mappings': <class 'list'> [
+    ],
+    'value': None,
+  }
+---
+# name: test_insert_multiple_keys_same_string
+  <class 'dict'> {
+    'children': <class 'list'> [
+      <class 'dict'> {
+        'children': <class 'list'> [
+          <class 'dict'> {
+            'children': <class 'list'> [
+              <class 'dict'> {
+                'children': <class 'list'> [
+                  <class 'dict'> {
+                    'children': <class 'list'> [
+                    ],
+                    'mappings': <class 'list'> [
+                      'key_1',
+                      'key_2',
+                    ],
+                    'value': 'd',
+                  },
+                ],
+                'mappings': <class 'list'> [
+                ],
+                'value': 'c',
+              },
+            ],
+            'mappings': <class 'list'> [
+            ],
+            'value': 'b',
+          },
+        ],
+        'mappings': <class 'list'> [
+        ],
+        'value': 'a',
+      },
+    ],
+    'mappings': <class 'list'> [
+    ],
+    'value': None,
+  }
+---
+# name: test_insert_overlapping_strings
+  <class 'dict'> {
+    'children': <class 'list'> [
+      <class 'dict'> {
+        'children': <class 'list'> [
+          <class 'dict'> {
+            'children': <class 'list'> [
+              <class 'dict'> {
+                'children': <class 'list'> [
+                  <class 'dict'> {
+                    'children': <class 'list'> [
+                    ],
+                    'mappings': <class 'list'> [
+                      'key_1',
+                    ],
+                    'value': 'd',
+                  },
+                  <class 'dict'> {
+                    'children': <class 'list'> [
+                    ],
+                    'mappings': <class 'list'> [
+                      'key_2',
+                    ],
+                    'value': 'e',
+                  },
+                ],
+                'mappings': <class 'list'> [
+                ],
+                'value': 'c',
+              },
+            ],
+            'mappings': <class 'list'> [
+            ],
+            'value': 'b',
+          },
+        ],
+        'mappings': <class 'list'> [
+        ],
+        'value': 'a',
+      },
+    ],
+    'mappings': <class 'list'> [
+    ],
+    'value': None,
+  }
+---
+# name: test_insert_single_character_
+  <class 'dict'> {
+    'children': <class 'list'> [
+      <class 'dict'> {
+        'children': <class 'list'> [
+        ],
+        'mappings': <class 'list'> [
+          'key_1',
+        ],
+        'value': 'a',
+      },
+    ],
+    'mappings': <class 'list'> [
+    ],
+    'value': None,
+  }
+---
+# name: test_insert_single_string
+  <class 'dict'> {
+    'children': <class 'list'> [
+      <class 'dict'> {
+        'children': <class 'list'> [
+          <class 'dict'> {
+            'children': <class 'list'> [
+              <class 'dict'> {
+                'children': <class 'list'> [
+                ],
+                'mappings': <class 'list'> [
+                  'key_1',
+                ],
+                'value': 'c',
+              },
+            ],
+            'mappings': <class 'list'> [
+            ],
+            'value': 'b',
+          },
+        ],
+        'mappings': <class 'list'> [
+        ],
+        'value': 'a',
+      },
+    ],
+    'mappings': <class 'list'> [
+    ],
+    'value': None,
+  }
+---
+# name: test_insert_strings_subsets_of_each_other
+  <class 'dict'> {
+    'children': <class 'list'> [
+      <class 'dict'> {
+        'children': <class 'list'> [
+          <class 'dict'> {
+            'children': <class 'list'> [
+              <class 'dict'> {
+                'children': <class 'list'> [
+                  <class 'dict'> {
+                    'children': <class 'list'> [
+                    ],
+                    'mappings': <class 'list'> [
+                      'key_1',
+                    ],
+                    'value': 'd',
+                  },
+                ],
+                'mappings': <class 'list'> [
+                  'key_2',
+                ],
+                'value': 'c',
+              },
+            ],
+            'mappings': <class 'list'> [
+            ],
+            'value': 'b',
+          },
+        ],
+        'mappings': <class 'list'> [
+        ],
+        'value': 'a',
+      },
+    ],
+    'mappings': <class 'list'> [
+    ],
+    'value': None,
+  }
+---
+# name: test_serializes_to_json
+  '{"value": null, "mappings": [], "children": [{"value": "a", "mappings": [], "children": [{"value": "b", "mappings": [], "children": [{"value": "c", "mappings": [], "children": [{"value": "d", "mappings": ["key_1"], "children": []}]}]}]}]}'
+---
